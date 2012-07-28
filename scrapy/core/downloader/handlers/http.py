@@ -1,5 +1,6 @@
 """Download handlers for http and https schemes"""
 
+from twisted.protocols.policies import ThrottlingFactory
 from twisted.internet import reactor
 
 from scrapy.exceptions import NotSupported
@@ -16,7 +17,8 @@ ClientContextFactory = load_object(settings['DOWNLOADER_CLIENTCONTEXTFACTORY'])
 class HttpDownloadHandler(object):
 
     def __init__(self, httpclientfactory=HTTPClientFactory):
-        self.httpclientfactory = httpclientfactory
+        self.httpclientfactory = ThrottlingFactory(httpclientfactory, readLimit=settings.getfloat('DOWNLOAD_THROTTLE_KB'))
+        self.httpclientfactory.throttleReads()
 
     def download_request(self, request, spider):
         """Return a deferred for the HTTP download"""

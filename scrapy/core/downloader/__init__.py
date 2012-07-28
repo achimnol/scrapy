@@ -74,6 +74,7 @@ class Downloader(object):
         self.total_concurrency = self.settings.getint('CONCURRENT_REQUESTS')
         self.domain_concurrency = self.settings.getint('CONCURRENT_REQUESTS_PER_DOMAIN')
         self.ip_concurrency = self.settings.getint('CONCURRENT_REQUESTS_PER_IP')
+        #self.rate_limit = self.settings.getfloat('RATE_LIMIT_PER_REQUEST')
         self.middleware = DownloaderMiddlewareManager.from_crawler(crawler)
         self.inactive_slots = {}
 
