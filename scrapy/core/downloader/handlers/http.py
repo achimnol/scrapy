@@ -17,21 +17,23 @@ ClientContextFactory = load_object(settings['DOWNLOADER_CLIENTCONTEXTFACTORY'])
 class HttpDownloadHandler(object):
 
     def __init__(self, httpclientfactory=HTTPClientFactory):
-        self.httpclientfactory = ThrottlingFactory(httpclientfactory, readLimit=settings.getfloat('DOWNLOAD_THROTTLE_KB'))
-        self.httpclientfactory.throttleReads()
+        self.httpclientfactory = httpclientfactory
+        self.read_throttling_rate = settings.getfloat('DOWNLOAD_THROTTLE_KB') * 1024
 
     def download_request(self, request, spider):
         """Return a deferred for the HTTP download"""
         factory = self.httpclientfactory(request)
-        self._connect(factory)
+        tfactory = ThrottlingFactory(factory, readLimit=self.read_throttling_rate)
+        self._connect(tfactory)
         return factory.deferred
 
-    def _connect(self, factory):
+    def _connect(self, tfactory):
+        factory = tfactory.wrappedFactory
         host, port = factory.host, factory.port
         if factory.scheme == 'https':
             if ssl_supported:
-                return reactor.connectSSL(host, port, factory, \
+                return reactor.connectSSL(host, port, tfactory, \
                         ClientContextFactory())
             raise NotSupported("HTTPS not supported: install pyopenssl library")
         else:
-            return reactor.connectTCP(host, port, factory)
+            return reactor.connectTCP(host, port, tfactory)
