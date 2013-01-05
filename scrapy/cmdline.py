@@ -6,11 +6,11 @@ import inspect
 import scrapy
 from scrapy.crawler import CrawlerProcess
 from scrapy.xlib import lsprofcalltree
-from scrapy.conf import settings
 from scrapy.command import ScrapyCommand
 from scrapy.exceptions import UsageError
 from scrapy.utils.misc import walk_modules
-from scrapy.utils.project import inside_project
+from scrapy.utils.project import inside_project, get_project_settings
+from scrapy.settings.deprecated import check_deprecated_settings
 
 def _iter_command_classes(module_name):
     # TODO: add `name` attribute to commands and and merge this function with
@@ -30,7 +30,7 @@ def _get_commands_from_module(module, inproject):
             d[cmdname] = cmd()
     return d
 
-def _get_commands_dict(inproject):
+def _get_commands_dict(settings, inproject):
     cmds = _get_commands_from_module('scrapy.commands', inproject)
     cmds_module = settings['COMMANDS_MODULE']
     if cmds_module:
@@ -45,19 +45,19 @@ def _pop_command_name(argv):
             return arg
         i += 1
 
-def _print_header(inproject):
+def _print_header(settings, inproject):
     if inproject:
         print "Scrapy %s - project: %s\n" % (scrapy.__version__, \
             settings['BOT_NAME'])
     else:
         print "Scrapy %s - no active project\n" % scrapy.__version__
 
-def _print_commands(inproject):
-    _print_header(inproject)
+def _print_commands(settings, inproject):
+    _print_header(settings, inproject)
     print "Usage:"
     print "  scrapy <command> [options] [args]\n"
     print "Available commands:"
-    cmds = _get_commands_dict(inproject)
+    cmds = _get_commands_dict(settings, inproject)
     for cmdname, cmdclass in sorted(cmds.iteritems()):
         print "  %-13s %s" % (cmdname, cmdclass.short_desc())
     if not inproject:
@@ -66,8 +66,8 @@ def _print_commands(inproject):
     print
     print 'Use "scrapy <command> -h" to see more info about a command'
 
-def _print_unknown_command(cmdname, inproject):
-    _print_header(inproject)
+def _print_unknown_command(settings, cmdname, inproject):
+    _print_header(settings, inproject)
     print "Unknown command: %s\n" % cmdname
     print 'Use "scrapy" to see available commands' 
 
@@ -81,21 +81,42 @@ def _run_print_help(parser, func, *a, **kw):
             parser.print_help()
         sys.exit(2)
 
-def execute(argv=None):
+def execute(argv=None, settings=None):
     if argv is None:
         argv = sys.argv
+
+    # --- backwards compatibility for scrapy.conf.settings singleton ---
+    if settings is None and 'scrapy.conf' in sys.modules:
+        from scrapy import conf
+        if hasattr(conf, 'settings'):
+            settings = conf.settings
+    # ------------------------------------------------------------------
+
+    if settings is None:
+        settings = get_project_settings()
+    check_deprecated_settings(settings)
+
+    # --- backwards compatibility for scrapy.conf.settings singleton ---
+    import warnings
+    from scrapy.exceptions import ScrapyDeprecationWarning
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", ScrapyDeprecationWarning)
+        from scrapy import conf
+        conf.settings = settings
+    # ------------------------------------------------------------------
+
     crawler = CrawlerProcess(settings)
     crawler.install()
     inproject = inside_project()
-    cmds = _get_commands_dict(inproject)
+    cmds = _get_commands_dict(settings, inproject)
     cmdname = _pop_command_name(argv)
     parser = optparse.OptionParser(formatter=optparse.TitledHelpFormatter(), \
         conflict_handler='resolve')
     if not cmdname:
-        _print_commands(inproject)
+        _print_commands(settings, inproject)
         sys.exit(0)
     elif cmdname not in cmds:
-        _print_unknown_command(cmdname, inproject)
+        _print_unknown_command(settings, cmdname, inproject)
         sys.exit(2)
 
     cmd = cmds[cmdname]

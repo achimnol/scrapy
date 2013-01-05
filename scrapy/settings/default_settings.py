@@ -41,8 +41,6 @@ DEFAULT_REQUEST_HEADERS = {
     'Accept-Language': 'en',
 }
 
-DEFAULT_RESPONSE_ENCODING = 'ascii'
-
 DEPTH_LIMIT = 0
 DEPTH_STATS = True
 DEPTH_PRIORITY = 0
@@ -110,6 +108,7 @@ EXTENSIONS_BASE = {
     'scrapy.contrib.feedexport.FeedExporter': 0,
     'scrapy.contrib.logstats.LogStats': 0,
     'scrapy.contrib.spiderstate.SpiderState': 0,
+    'scrapy.contrib.throttle.AutoThrottle': 0,
 }
 
 FEED_URI = None
@@ -137,7 +136,7 @@ FEED_EXPORTERS_BASE = {
 HTTPCACHE_ENABLED = False
 HTTPCACHE_DIR = 'httpcache'
 HTTPCACHE_IGNORE_MISSING = False
-HTTPCACHE_STORAGE = 'scrapy.contrib.downloadermiddleware.httpcache.FilesystemCacheStorage'
+HTTPCACHE_STORAGE = 'scrapy.contrib.httpcache.DbmCacheStorage'
 HTTPCACHE_EXPIRATION_SECS = 0
 HTTPCACHE_IGNORE_HTTP_CODES = []
 HTTPCACHE_IGNORE_SCHEMES = ['file']
@@ -197,8 +196,6 @@ SCHEDULER = 'scrapy.core.scheduler.Scheduler'
 SCHEDULER_DISK_QUEUE = 'scrapy.squeue.PickleLifoDiskQueue'
 SCHEDULER_MEMORY_QUEUE = 'scrapy.squeue.LifoMemoryQueue'
 
-SELECTORS_BACKEND = None # possible values: libxml2, lxml
-
 SPIDER_MANAGER_CLASS = 'scrapy.spidermanager.SpiderManager'
 
 SPIDER_MIDDLEWARES = {}
@@ -216,7 +213,6 @@ SPIDER_MIDDLEWARES_BASE = {
 SPIDER_MODULES = []
 
 STATS_CLASS = 'scrapy.statscol.MemoryStatsCollector'
-STATS_ENABLED = True
 STATS_DUMP = True
 
 STATSMAILER_RCPTS = []
@@ -225,7 +221,7 @@ TEMPLATES_DIR = abspath(join(dirname(__file__), '..', 'templates'))
 
 URLLENGTH_LIMIT = 2083
 
-USER_AGENT = 'Scrapy/0.15 (+http://scrapy.org)'
+USER_AGENT = 'Scrapy/%s (+http://scrapy.org)' % __import__('scrapy').__version__
 
 TELNETCONSOLE_ENABLED = 1
 TELNETCONSOLE_PORT = [6023, 6073]
@@ -240,4 +236,11 @@ WEBSERVICE_RESOURCES_BASE = {
     'scrapy.contrib.webservice.crawler.CrawlerResource': 1,
     'scrapy.contrib.webservice.enginestatus.EngineStatusResource': 1,
     'scrapy.contrib.webservice.stats.StatsResource': 1,
+}
+
+SPIDER_CONTRACTS = {}
+SPIDER_CONTRACTS_BASE = {
+    'scrapy.contracts.default.UrlContract' : 1,
+    'scrapy.contracts.default.ReturnsContract': 2,
+    'scrapy.contracts.default.ScrapesContract': 3,
 }

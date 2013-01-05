@@ -103,10 +103,10 @@ information on which commands must be run from inside projects, and which not.
 
 Also keep in mind that some commands may have slightly different behaviours
 when running them from inside projects. For example, the fetch command will use
-spider-overridden behaviours (such as custom :setting:`USER_AGENT` per-spider
-setting) if the url being fetched is associated with some specific spider. This
-is intentional, as the ``fetch`` command is meant to be used to check how
-spiders are downloading pages.
+spider-overridden behaviours (such as the ``user_agent`` attribute to override
+the user-agent) if the url being fetched is associated with some specific
+spider. This is intentional, as the ``fetch`` command is meant to be used to
+check how spiders are downloading pages.
 
 .. _topics-commands-ref:
 
@@ -142,6 +142,7 @@ Global commands:
 Project-only commands:
 
 * :command:`crawl`
+* :command:`check`
 * :command:`list`
 * :command:`edit`
 * :command:`parse`
@@ -220,6 +221,33 @@ Usage examples::
     $ scrapy crawl myspider
     [ ... myspider starts crawling ... ]
 
+
+.. command:: check
+
+check
+-----
+
+* Syntax: ``scrapy check [-l] <spider>``
+* Requires project: *yes*
+
+Run contract checks.
+
+Usage examples::
+
+    $ scrapy check -l
+    first_spider
+      * parse
+      * parse_item
+    second_spider
+      * parse
+      * parse_item
+
+    $ scrapy check
+    [FAILED] first_spider:parse_item
+    >>> 'RetailPricex' field is missing
+
+    [FAILED] first_spider:parse
+    >>> Returned 92 requests, expected 0..4
 
 .. command:: server
 
@@ -364,9 +392,9 @@ Supported options:
   rules to discover the callback (ie. spider method) to use for parsing the
   response
 
-* ``--noitems``: don't show extracted links
+* ``--noitems``: don't show scraped items
 
-* ``--nolinks``: don't show scraped items
+* ``--nolinks``: don't show extracted links
 
 * ``--depth`` or ``-d``: depth level for which the requests should be followed
   recursively (default: 1)

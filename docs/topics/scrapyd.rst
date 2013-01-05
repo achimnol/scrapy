@@ -21,7 +21,7 @@ A common (and useful) convention to use for the version name is the revision
 number of the version control tool you're using to track your Scrapy project
 code. For example: ``r23``. The versions are not compared alphabetically but
 using a smarter algorithm (the same `distutils`_ uses) so ``r10`` compares
-greater to ``r9``, for example. 
+greater to ``r9``, for example.
 
 How Scrapyd works
 =================
@@ -197,6 +197,8 @@ storing logs set this option empty, like this::
 
     logs_dir =
 
+.. _items_dir:
+
 items_dir
 ---------
 
@@ -207,6 +209,8 @@ storing feeds of scraped items (perhaps, because you use a database or other
 storage) set this option empty, like this::
 
     items_dir =
+
+.. _jobs_to_keep:
 
 jobs_to_keep
 ------------
@@ -459,6 +463,8 @@ Example reponse::
 
     {"status": "ok", "spiders": 3}
 
+.. _scrapyd-schedule:
+
 schedule.json
 -------------
 
@@ -485,12 +491,14 @@ Example request passing a spider argument (``arg1``) and a setting
 
     $ curl http://localhost:6800/schedule.json -d project=myproject -d spider=somespider -d setting=DOWNLOAD_DELAY=2 -d arg1=val1
 
+.. _cancel.json:
+
 cancel.json
 -----------
 
 .. versionadded:: 0.15
 
-Schedule a spider run (aka. job). If the job is pending, it will be removed. If
+Cancel a spider run (aka. job). If the job is pending, it will be removed. If
 the job is running, it will be terminated.
 
 * Supported Request Methods: ``POST``
@@ -506,11 +514,6 @@ Example request::
 Example response::
 
     {"status": "ok", "prevstate": "running"}
-
-Example request passing a spider argument (``arg1``) and a setting
-(:setting:`DOWNLOAD_DELAY`)::
-
-    $ curl http://localhost:6800/schedule.json -d project=myproject -d spider=somespider -d setting=DOWNLOAD_DELAY=2 -d arg1=val1
 
 listprojects.json
 -----------------
@@ -565,6 +568,8 @@ Example response::
 
     {"status": "ok", "spiders": ["spider1", "spider2", "spider3"]}
 
+.. _listjobs.json:
+
 listjobs.json
 -------------
 
@@ -584,9 +589,11 @@ Example request::
 Example response::
 
     {"status": "ok",
-     "pending": ["26d1b1a6d6f111e0be5c001e648c57f8", "a0571c5b9493187adb5bd07ad0faf279a86251df"],
-     "running": ["422e608f9f28cef127b3d5ef93fe93992108bc5c"],
-     "finished": ["5c7fd9513b1796bcd9311dd0f59bcf8973c58859"]}
+     "pending": [{"id": "78391cc0fcaf11e1b0090800272a6d06", "spider": "spider1"}],
+     "running": [{"id": "422e608f9f28cef127b3d5ef93fe9399", "spider": "spider2"}],
+     "finished": [{"id": "2f16646cfcaf11e1b0090800272a6d06", "spider": "spider3", "start_time": "2012-09-12 10:14:03.594664", "end_time": "2012-09-12 10:24:03.594664"}]}
+
+.. note:: All job data is kept in memory and will be reset when the Scrapyd service is restarted. See :issue:`173`.
 
 delversion.json
 ---------------

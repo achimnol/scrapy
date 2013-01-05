@@ -4,18 +4,21 @@ from scrapy import log
 from scrapy.http import HtmlResponse
 from scrapy.utils.response import get_meta_refresh
 from scrapy.exceptions import IgnoreRequest, NotConfigured
-from scrapy.conf import settings
 
 
 class RedirectMiddleware(object):
     """Handle redirection of requests based on response status and meta-refresh html tag"""
 
-    def __init__(self):
+    def __init__(self, settings):
         if not settings.getbool('REDIRECT_ENABLED'):
             raise NotConfigured
         self.max_metarefresh_delay = settings.getint('REDIRECT_MAX_METAREFRESH_DELAY')
         self.max_redirect_times = settings.getint('REDIRECT_MAX_TIMES')
         self.priority_adjust = settings.getint('REDIRECT_PRIORITY_ADJUST')
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(crawler.settings)
 
     def process_response(self, request, response, spider):
         if 'dont_redirect' in request.meta:
@@ -57,12 +60,13 @@ class RedirectMiddleware(object):
                 [request.url]
             redirected.dont_filter = request.dont_filter
             redirected.priority = request.priority + self.priority_adjust
-            log.msg("Redirecting (%s) to %s from %s" % (reason, redirected, request),
-                    spider=spider, level=log.DEBUG)
+            log.msg(format="Redirecting (%(reason)s) to %(redirected)s from %(request)s",
+                    level=log.DEBUG, spider=spider, request=request,
+                    redirected=redirected, reason=reason)
             return redirected
         else:
-            log.msg("Discarding %s: max redirections reached" % request,
-                    spider=spider, level=log.DEBUG)
+            log.msg(format="Discarding %(request)s: max redirections reached",
+                    level=log.DEBUG, spider=spider, request=request)
             raise IgnoreRequest
 
     def _redirect_request_using_get(self, request, redirect_url):

@@ -18,17 +18,16 @@ class Launcher(Service):
         self.processes = {}
         self.finished = []
         self.finished_to_keep = config.getint('finished_to_keep', 100)
-        self.max_proc = config.getint('max_proc', 0)
-        if not self.max_proc:
-            self.max_proc = cpu_count() * config.getint('max_proc_per_cpu', 4)
+        self.max_proc = self._get_max_proc(config)
         self.runner = config.get('runner', 'scrapyd.runner')
         self.app = app
 
     def startService(self):
         for slot in range(self.max_proc):
             self._wait_for_project(slot)
-        log.msg("%s started: max_proc=%r, runner=%r" % (self.parent.name, \
-            self.max_proc, self.runner), system="Launcher")
+        log.msg(format='%(parent)s started: max_proc=%(max_proc)r, runner=%(runner)r',
+                parent=self.parent.name, max_proc=self.max_proc,
+                runner=self.runner, system='Launcher')
 
     def _wait_for_project(self, slot):
         poller = self.app.getComponent(IPoller)
@@ -55,6 +54,15 @@ class Launcher(Service):
         del self.finished[:-self.finished_to_keep] # keep last 100 finished jobs
         self._wait_for_project(slot)
 
+    def _get_max_proc(self, config):
+        max_proc = config.getint('max_proc', 0)
+        if not max_proc:
+            try:
+                cpus = cpu_count()
+            except NotImplementedError:
+                cpus = 1
+            max_proc = cpus * config.getint('max_proc_per_cpu', 4)
+        return max_proc
 
 class ScrapyProcessProtocol(protocol.ProcessProtocol):
 
@@ -88,7 +96,7 @@ class ScrapyProcessProtocol(protocol.ProcessProtocol):
             self.log("Process died: exitstatus=%r " % status.value.exitCode)
         self.deferred.callback(self)
 
-    def log(self, msg):
-        msg += "project=%r spider=%r job=%r pid=%r log=%r items=%r" % (self.project, \
-            self.spider, self.job, self.pid, self.logfile, self.itemsfile)
-        log.msg(msg, system="Launcher")
+    def log(self, action):
+        fmt = '%(action)s project=%(project)r spider=%(spider)r job=%(job)r pid=%(pid)r log=%(log)r items=%(items)r'
+        log.msg(format=fmt, action=action, project=self.project, spider=self.spider,
+                job=self.job, pid=self.pid, log=self.logfile, items=self.itemsfile)

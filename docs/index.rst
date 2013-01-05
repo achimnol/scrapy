@@ -76,7 +76,7 @@ Basic concepts
     Write the rules to crawl your websites.
 
 :doc:`topics/selectors`
-    Extract the data from web pages.
+    Extract the data from web pages using XPath.
 
 :doc:`topics/shell`
     Test your extraction code in an interactive environment.
@@ -129,19 +129,33 @@ Solving specific problems
 
    faq
    topics/debug
+   topics/contracts
+   topics/practices
+   topics/broad-crawls
    topics/firefox
    topics/firebug
    topics/leaks
    topics/images
    topics/ubuntu
    topics/scrapyd
+   topics/autothrottle
    topics/jobs
+   topics/djangoitem
 
 :doc:`faq`
     Get answers to most frequently asked questions.
 
 :doc:`topics/debug`
     Learn how to debug common problems of your scrapy spider.
+
+:doc:`topics/contracts`
+    Learn how to use contracts for testing your spiders.
+
+:doc:`topics/practices`
+    Get familiar with some Scrapy common practices.
+
+:doc:`topics/broad-crawls`
+    Tune Scrapy for crawling a lot domains in parallel.
 
 :doc:`topics/firefox`
     Learn how to scrape with Firefox and some useful add-ons.
@@ -161,8 +175,14 @@ Solving specific problems
 :doc:`topics/scrapyd`
     Deploying your Scrapy project in production.
 
+:doc:`topics/autothrottle`
+    Adjust crawl rate dynamically based on load.
+
 :doc:`topics/jobs`
     Learn how to pause and resume crawls for large spiders.
+
+:doc:`topics/djangoitem`
+    Write scraped items using Django models.
 
 .. _extending-scrapy:
 
@@ -176,6 +196,7 @@ Extending Scrapy
    topics/downloader-middleware
    topics/spider-middleware
    topics/extensions
+   topics/api
 
 :doc:`topics/architecture`
     Understand the Scrapy architecture.
@@ -187,9 +208,10 @@ Extending Scrapy
     Customize the input and output of your spiders.
 
 :doc:`topics/extensions`
-    Add any custom functionality using :doc:`signals <topics/signals>` and the
-    Scrapy API
+    Extend Scrapy with your custom functionality
 
+:doc:`topics/api`
+    Use it on extensions and middlewares to extend Scrapy functionality
 
 Reference
 =========

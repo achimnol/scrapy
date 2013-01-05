@@ -1,16 +1,70 @@
+.. _news:
+
 Release notes
 =============
 
-0.16 (not yet released)
------------------------
+0.18 (unreleased)
+-----------------
+
+- several improvements to spider contracts
+
+
+0.16.3 (released 2012-12-07)
+----------------------------
+
+- Remove concurrency limitation when using download delays and still ensure inter-request delays are enforced (:commit:`487b9b5`)
+- add error details when image pipeline fails (:commit:`8232569`)
+- improve mac os compatibility (:commit:`8dcf8aa`)
+- setup.py: use README.rst to populate long_description (:commit:`7b5310d`)
+- doc: removed obsolete references to ClientForm (:commit:`80f9bb6`)
+- correct docs for default storage backend (:commit:`2aa491b`)
+- doc: removed broken proxyhub link from FAQ (:commit:`bdf61c4`)
+- Merge branch '0.16' of github.com:scrapy/scrapy into 0.16 (:commit:`d5087b0`)
+- Fixed docs typo in SpiderOpenCloseLogging example (:commit:`7184094`)
+
+
+0.16.2 (released 2012-11-09)
+----------------------------
+
+- scrapy contracts: python2.6 compat (:commit:`a4a9199`)
+- scrapy contracts verbose option (:commit:`ec41673`)
+- proper unittest-like output for scrapy contracts (:commit:`86635e4`)
+- added open_in_browser to debugging doc (:commit:`c9b690d`)
+- removed reference to global scrapy stats from settings doc (:commit:`dd55067`)
+- Fix SpiderState bug in Windows platforms (:commit:`58998f4`)
+
+
+0.16.1 (released 2012-10-26)
+----------------------------
+
+- fixed LogStats extension, which got broken after a wrong merge before the 0.16 release (:commit:`8c780fd`)
+- better backwards compatibility for scrapy.conf.settings (:commit:`3403089`)
+- extended documentation on how to access crawler stats from extensions (:commit:`c4da0b5`)
+- removed .hgtags (no longer needed now that scrapy uses git) (:commit:`d52c188`)
+- fix dashes under rst headers (:commit:`fa4f7f9`)
+- set release date for 0.16.0 in news (:commit:`e292246`)
+
+
+0.16.0 (released 2012-10-18)
+----------------------------
 
 Scrapy changes:
 
+- added :ref:`topics-contracts`, a mechanism for testing spiders in a formal/reproducible way
+- added options ``-o`` and ``-t`` to the :command:`runspider` command
+- documented :doc:`topics/autothrottle` and added to extensions installed by default. You still need to enable it with :setting:`AUTOTHROTTLE_ENABLED`
+- major Stats Collection refactoring: removed separation of global/per-spider stats, removed stats-related signals (``stats_spider_opened``, etc). Stats are much simpler now, backwards compatibility is kept on the Stats Collector API and signals.
+- added :meth:`~scrapy.contrib.spidermiddleware.SpiderMiddleware.process_start_requests` method to spider middlewares
+- dropped Signals singleton. Signals should now be accesed through the Crawler.signals attribute. See the signals documentation for more info.
+- dropped Signals singleton. Signals should now be accesed through the Crawler.signals attribute. See the signals documentation for more info.
+- dropped Stats Collector singleton. Stats can now be accessed through the Crawler.stats attribute. See the stats collection documentation for more info.
+- documented :ref:`topics-api`
 - `lxml` is now the default selectors backend instead of `libxml2`
 - ported FormRequest.from_response() to use `lxml`_ instead of `ClientForm`_
 - removed modules: ``scrapy.xlib.BeautifulSoup`` and ``scrapy.xlib.ClientForm``
 - SitemapSpider: added support for sitemap urls ending in .xml and .xml.gz, even if they advertise a wrong content type (:commit:`10ed28b`)
 - StackTraceDump extension: also dump trackref live references (:commit:`fe2ce93`)
+- nested items now fully supported in JSON and JSONLines exporters
 - added :reqmeta:`cookiejar` Request meta key to support multiple cookie sessions per spider
 - decoupled encoding detection code to `w3lib.encoding`_, and ported Scrapy code to use that mdule
 - dropped support for Python 2.5. See http://blog.scrapy.org/scrapy-dropping-support-for-python-25
@@ -18,12 +72,25 @@ Scrapy changes:
 - added :setting:`REFERER_ENABLED` setting, to control referer middleware
 - changed default user agent to: ``Scrapy/VERSION (+http://scrapy.org)``
 - removed (undocumented) ``HTMLImageLinkExtractor`` class from ``scrapy.contrib.linkextractors.image``
+- removed per-spider settings (to be replaced by instantiating multiple crawler objects)
+- ``USER_AGENT`` spider attribute will no longer work, use ``user_agent`` attribute instead
+- ``DOWNLOAD_TIMEOUT`` spider attribute will no longer work, use ``download_timeout`` attribute instead
+- removed ``ENCODING_ALIASES`` setting, as encoding auto-detection has been moved to the `w3lib`_ library
+- promoted :ref:`topics-djangoitem` to main contrib
+- LogFormatter method now return dicts(instead of strings) to support lazy formatting (:issue:`164`, :commit:`dcef7b0`)
+- downloader handlers (:setting:`DOWNLOAD_HANDLERS` setting) now receive settings as the first argument of the constructor
+- replaced memory usage acounting with (more portable) `resource`_ module, removed ``scrapy.utils.memory`` module
+- removed signal: ``scrapy.mail.mail_sent``
+- removed ``TRACK_REFS`` setting, now :ref:`trackrefs <topics-leaks-trackrefs>` is always enabled
+- DBM is now the default storage backend for HTTP cache middleware
+- number of log messages (per level) are now tracked through Scrapy stats (stat name: ``log_count/LEVEL``)
+- number received responses are now tracked through Scrapy stats (stat name: ``response_received_count``)
+- removed ``scrapy.log.started`` attribute
 
 Scrapyd changes:
 
-- New Scrapy API methods (see documentation for details)
-   - ``listjobs.json`` to see pending/running/finished jobs
-   - ``cancel.json`` to cancel pending and running jobs
+- New Scrapyd API methods: :ref:`listjobs.json` and :ref:`cancel.json`
+- New Scrapyd settings: :ref:`items_dir` and :ref:`jobs_to_keep`
 - Items are now stored on disk using feed exports, and accessible through the Scrapyd web interface
 - Support making Scrapyd listen into a specific IP address (see ``bind_address`` option)
 
@@ -231,7 +298,7 @@ API changes
 
 - ``url`` and ``body`` attributes of Request objects are now read-only (#230)
 - ``Request.copy()`` and ``Request.replace()`` now also copies their ``callback`` and ``errback`` attributes (#231)
-- Removed ``UrlFilterMiddleware`` from ``scrapy.contrib`` (already disabled by default) - see this snippet for a replacement: http://snippets.scrapy.org/snippets/12/
+- Removed ``UrlFilterMiddleware`` from ``scrapy.contrib`` (already disabled by default)
 - Offsite middelware doesn't filter out any request coming from a spider that doesn't have a allowed_domains attribute (#225)
 - Removed Spider Manager ``load()`` method. Now spiders are loaded in the constructor itself.
 - Changes to Scrapy Manager (now called "Crawler"):
@@ -365,3 +432,4 @@ First release of Scrapy.
 .. _w3lib.encoding: https://github.com/scrapy/w3lib/blob/master/w3lib/encoding.py
 .. _lxml: http://lxml.de/
 .. _ClientForm: http://wwwsearch.sourceforge.net/old/ClientForm/
+.. _resource: http://docs.python.org/library/resource.html

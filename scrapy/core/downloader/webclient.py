@@ -1,7 +1,6 @@
 from time import time
 from urlparse import urlparse, urlunparse, urldefrag
 
-from twisted.python import failure
 from twisted.web.client import HTTPClientFactory
 from twisted.web.http import HTTPClient
 from twisted.internet import defer
@@ -150,6 +149,11 @@ class ScrapyClientContextFactory(ClientContextFactory):
     "A SSL context factory which is more permissive against SSL bugs."
     # see https://github.com/scrapy/scrapy/issues/82
     # and https://github.com/scrapy/scrapy/issues/26
+
+    def __init__(self):
+        # see this issue on why we use TLSv1_METHOD by default
+        # https://github.com/scrapy/scrapy/issues/194
+        self.method = SSL.TLSv1_METHOD
 
     def getContext(self):
         ctx = ClientContextFactory.getContext(self)
